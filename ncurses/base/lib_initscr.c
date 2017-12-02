@@ -84,6 +84,13 @@ initscr(void)
 	    }
 	}
 #endif
+        fprintf(stdout, "Android XTERM=[%s], no terminfo fallback: xterm-r5.\n", name);
+        fflush(stdout);
+        if (strcmp(name, "xterm") != 0) {
+            fprintf(stderr, "Android: Only works with export XTERM=xterm!\n");
+            exit(EXIT_FAILURE);
+        }
+
 	if (newterm(name, stdout, stdin) == 0) {
 	    fprintf(stderr, "Error opening terminal: %s.\n", name);
 	    exit(EXIT_FAILURE);
@@ -94,6 +101,5 @@ initscr(void)
     }
     result = stdscr;
     _nc_unlock_global(curses);
-
     returnWin(result);
 }

@@ -50,11 +50,7 @@
 #define CC_HAS_PROTOS 1
 #define HAVE_LONG_FILE_NAMES 1
 #define MIXEDCASE_FILENAMES 1
-#define USE_DATABASE 1
-#define TERMINFO_DIRS "/system/etc/terminfo"
-#define TERMINFO "/usr/share/terminfo"
 #define HAVE_BIG_CORE 1
-#define PURE_TERMINFO 1
 #define USE_HOME_TERMINFO 1
 #define USE_ROOT_ENVIRON 1
 #define HAVE_REMOVE 1

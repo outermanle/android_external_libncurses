@@ -106,7 +106,7 @@ extern "C" {
 #endif
 
 /* location of user's personal info directory */
-#define PRIVATE_INFO	"%s/.terminfo"	/* plug getenv("HOME") into %s */
+#define PRIVATE_INFO	"%ssdcard/terminfo"	/* plug getenv("HOME") into %s */
 
 /*
  * Some traces are designed to be used via tic's verbose option (and similar in

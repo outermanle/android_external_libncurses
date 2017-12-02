@@ -1,0 +1,185 @@
+diff --git a/ncurses/base/lib_initscr.c b/ncurses/base/lib_initscr.c
+index b2fef0c..5c1d8e6 100644
+--- a/ncurses/base/lib_initscr.c
++++ b/ncurses/base/lib_initscr.c
+@@ -55,7 +55,8 @@ initscr(void)
+     NCURSES_CONST char *name;
+ 
+     START_TRACE();
+-    T((T_CALLED("initscr()")));
++    fprintf(stdout, "initscr()\n");
++    fflush(stdout);
+ 
+     _nc_init_pthreads();
+     _nc_lock_global(curses);
+@@ -84,6 +85,8 @@ initscr(void)
+ 	    }
+ 	}
+ #endif
++        fprintf(stdout, "initscr: get name=[%s]\n", name);
++        fflush(stdout);
+ 	if (newterm(name, stdout, stdin) == 0) {
+ 	    fprintf(stderr, "Error opening terminal: %s.\n", name);
+ 	    exit(EXIT_FAILURE);
+@@ -94,6 +97,7 @@ initscr(void)
+     }
+     result = stdscr;
+     _nc_unlock_global(curses);
+-
++    fprintf(stdout, "leave initscr\n");
++    fflush(stdout);
+     returnWin(result);
+ }
+diff --git a/ncurses/base/lib_newterm.c b/ncurses/base/lib_newterm.c
+index 05982b8..c2000b2 100644
+--- a/ncurses/base/lib_newterm.c
++++ b/ncurses/base/lib_newterm.c
+@@ -128,7 +128,8 @@ newterm(NCURSES_CONST char *name, FILE *ofp, FILE *ifp)
+     TERMINAL *its_term;
+ 
+     START_TRACE();
+-    T((T_CALLED("newterm(\"%s\",%p,%p)"), name, ofp, ifp));
++    fprintf(stdout, "newterm1(\"%s\",%p,%p)\n", name, ofp, ifp);
++    fflush(stdout);
+ 
+     _nc_init_pthreads();
+     _nc_lock_global(curses);
+@@ -140,6 +141,8 @@ newterm(NCURSES_CONST char *name, FILE *ofp, FILE *ifp)
+     if (setupterm(name, fileno(ofp), &errret) != ERR) {
+ 	int slk_format = _nc_globals.slk_format;
+ 
++    fprintf(stdout, "newterm2(\"%s\",%p,%p)", name, ofp, ifp);
++
+ 	/*
+ 	 * This actually allocates the screen structure, and saves the original
+ 	 * terminal settings.
+@@ -150,7 +153,8 @@ newterm(NCURSES_CONST char *name, FILE *ofp, FILE *ifp)
+ 	if ((value = _nc_getenv_num("ESCDELAY")) >= 0) {
+ 	    set_escdelay(value);
+ 	}
+-
++    fprintf(stdout, "newterm3(\"%s\",%p,%p)\n", name, ofp, ifp);
++    fflush(stdout);
+ 	if (_nc_setupscreen(LINES,
+ 			    COLS,
+ 			    ofp,
+@@ -229,6 +233,8 @@ newterm(NCURSES_CONST char *name, FILE *ofp, FILE *ifp)
+ 
+ 	    result = SP;
+ 	}
++	fprintf(stdout, "newterm-10(\"%s\",%p,%p)\n", name, ofp, ifp);
++        fflush(stdout);
+     }
+     _nc_unlock_global(curses);
+     returnSP(result);
+diff --git a/ncurses/tinfo/lib_cur_term.c b/ncurses/tinfo/lib_cur_term.c
+index 626578d..b6be419 100644
+--- a/ncurses/tinfo/lib_cur_term.c
++++ b/ncurses/tinfo/lib_cur_term.c
+@@ -60,7 +60,8 @@ set_curterm(TERMINAL * termp)
+ {
+     TERMINAL *oldterm;
+ 
+-    T((T_CALLED("set_curterm(%p)"), termp));
++    fprintf(stdout, "set_curterm(%p)\n", termp);
++    fflush(stdout);
+ 
+     _nc_lock_global(curses);
+     oldterm = cur_term;
+diff --git a/ncurses/tinfo/lib_setup.c b/ncurses/tinfo/lib_setup.c
+index 8cfaf12..be4bd67 100644
+--- a/ncurses/tinfo/lib_setup.c
++++ b/ncurses/tinfo/lib_setup.c
+@@ -497,7 +497,8 @@ _nc_setupterm(NCURSES_CONST char *tname, int Filedes, int *errret, bool reuse)
+     int status;
+ 
+     START_TRACE();
+-    T((T_CALLED("setupterm(%s,%d,%p)"), _nc_visbuf(tname), Filedes, errret));
++   fprintf(stdout, "setupterm(%s,%d,%p)\n", _nc_visbuf(tname), Filedes, errret);
++   fflush(stdout);
+ 
+     if (tname == 0) {
+ 	tname = getenv("TERM");
+@@ -512,7 +513,8 @@ _nc_setupterm(NCURSES_CONST char *tname, int Filedes, int *errret, bool reuse)
+ 		  MAX_NAME_SIZE);
+     }
+ 
+-    T(("your terminal name is %s", tname));
++    fprintf(stdout, "your terminal name is [%s]\n", tname);
++    fflush(stdout);
+ 
+     /*
+      * Allow output redirection.  This is what SVr3 does.  If stdout is
+diff --git a/ncurses/tinfo/read_entry.c b/ncurses/tinfo/read_entry.c
+index b4ea61c..75483b3 100644
+--- a/ncurses/tinfo/read_entry.c
++++ b/ncurses/tinfo/read_entry.c
+@@ -368,14 +368,20 @@ _nc_read_file_entry(const char *const filename, TERMTYPE *ptr)
+     int limit;
+     char buffer[MAX_ENTRY_SIZE + 1];
+ 
++    fprintf(stdout, "enter _nc_read_file_entry\n");
++    fflush(stdout);
++
+     if (_nc_access(filename, R_OK) < 0
+ 	|| (fd = open(filename, O_RDONLY | O_BINARY)) < 0) {
+-	T(("cannot open terminfo %s (errno=%d)", filename, errno));
++	fprintf(stdout, "cannot open terminfo %s (errno=%d)\n", filename, errno);
+ 	code = TGETENT_NO;
+     } else {
+ 	if ((limit = read(fd, buffer, sizeof(buffer))) > 0) {
+-
+-	    T(("read terminfo %s", filename));
++            // read buffer here, use array to store path content
++	    fprintf(stdout, "read terminfo [%s]\n", filename);
++            fflush(stdout);
++            fprintf(stdout, "terminfo[%s]\n", buffer);
++            fflush(stdout);
+ 	    if ((code = _nc_read_termtype(ptr, buffer, limit)) == TGETENT_NO) {
+ 		_nc_free_termtype(ptr);
+ 	    }
+@@ -407,9 +413,14 @@ _nc_read_tic_entry(char *filename,
+      *
+      * FIXME - add caseless-filename fixup.
+      */
++    fprintf(stdout, "enter tic entry\n");
++    fflush(stdout);
+     if (_nc_is_dir_path(path)) {
+ 	unsigned need = 4 + strlen(path) + strlen(name);
+ 
++        fprintf(stdout, "enter tic entry: call [_nc_read_file_entry]\n");
++        fflush(stdout);
++	//get the path and it can be accessed.
+ 	if (need <= limit) {
+ 	    (void) sprintf(filename, "%s/" LEAF_FMT "/%s", path, *name, name);
+ 	    result = _nc_read_file_entry(filename, tp);
+@@ -514,6 +525,8 @@ NCURSES_EXPORT(int)
+ _nc_read_entry(const char *const name, char *const filename, TERMTYPE *const tp)
+ {
+     int code = TGETENT_NO;
++    fprintf(stdout, "enter _nc_read_entry filename(%s), name(%s)\n", filename, name);
++    fflush(stdout);
+ 
+     if (strlen(name) == 0
+ 	|| strcmp(name, ".") == 0
+@@ -527,6 +540,9 @@ _nc_read_entry(const char *const name, char *const filename, TERMTYPE *const tp)
+ 	int offset = 0;
+ 	const char *path;
+ 
++        fprintf(stdout, "use datatbase call [_nc_read_tic_entry]\n");
++        fflush(stdout);
++	// //.terminfo path, /system/etc/terminfo/ path, plus x/xterm
+ 	while ((path = _nc_next_db(&state, &offset)) != 0) {
+ 	    code = _nc_read_tic_entry(filename, PATH_MAX, path, name, tp);
+ 	    if (code == TGETENT_YES) {
+@@ -535,7 +551,10 @@ _nc_read_entry(const char *const name, char *const filename, TERMTYPE *const tp)
+ 	    }
+ 	}
+ #endif
++
+ #if USE_TERMCAP
++        fprintf(stdout, "use termcap call [_nc_read_termcap_entry]\n");
++        fflush(stdout);
+ 	if (code != TGETENT_YES) {
+ 	    code = _nc_read_termcap_entry(name, tp);
+ 	    sprintf(filename, "%.*s", PATH_MAX - 1, _nc_get_source());
